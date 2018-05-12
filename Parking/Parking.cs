@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 
-namespace Parking
+namespace ParkingCL
 {
     public sealed class Parking
     {
@@ -95,6 +95,13 @@ namespace Parking
             {
                 return 0;
             }
+        }
+
+        public Car GetCarByID(string carLicensePlate)
+        {
+            if (String.IsNullOrWhiteSpace(carLicensePlate)) return null;
+
+            return cars.FirstOrDefault<Car>(x => x.LicensePlate == carLicensePlate);
         }
 
         private void PayCalc(object o)
