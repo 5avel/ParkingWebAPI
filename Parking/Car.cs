@@ -28,7 +28,6 @@ namespace ParkingCL
 
         public Car(string licensePlate, CarType carType, decimal balance = 0)
         {
-            if (String.IsNullOrWhiteSpace(licensePlate)) throw new ArgumentException("");
             this.LicensePlate = licensePlate;
             this.CarType = carType;
             this.Balance = balance;

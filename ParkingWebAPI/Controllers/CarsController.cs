@@ -18,7 +18,7 @@ namespace ParkingWebAPI.Controllers
         [HttpGet]
         public IEnumerable<Car> Get()
         {
-            return Parking.Instance.GetAllCars();
+            return _parking.GetAllCars();
         }
 
         // GET: api/Cars/5  Деталі по одній машині
@@ -32,6 +32,7 @@ namespace ParkingWebAPI.Controllers
         [HttpPost]
         public IActionResult Post([FromBody]Car value)
         {
+            if (String.IsNullOrWhiteSpace(value.LicensePlate)) return BadRequest("The machine id can not be empty.");
             if(_parking.AddCar(value))
             {
                 return Ok();
@@ -53,7 +54,6 @@ namespace ParkingWebAPI.Controllers
             {
                 return BadRequest(String.Format("The machine with the number {0} has a negative balance. Please Replenish balance.", id));
             }
-
             return BadRequest(String.Format("The machine with the number {0} is not found. Please try again.", id));
         }
     }
