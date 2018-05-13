@@ -34,7 +34,6 @@ namespace ParkingWebAPI.Controllers
             {
                 return Ok();
             }
-
             return BadRequest(String.Format("The machine with the number {0} already exists. Please try again.", value.LicensePlate));
         }
 

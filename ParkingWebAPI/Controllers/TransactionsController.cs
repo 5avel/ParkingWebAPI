@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ParkingCL;
+using System;
 using System.Collections.Generic;
 
 namespace ParkingWebAPI.Controllers
@@ -14,27 +15,35 @@ namespace ParkingWebAPI.Controllers
         [HttpGet("log")]
         public IEnumerable<string> GetLog()
         {
-            return new string[] { "value1", "value2" };
+            return _parking.GetTransactionsLog();
         }
 
         // GET: api/Transactions Вивести транзакції за останню хвилину
         [HttpGet]
-        public IEnumerable<string> Get()
+        public IEnumerable<Transaction> Get()
         {
-            return new string[] { "value1", "value2" };
+            return _parking.GetAllTransactions();
         }
 
         // GET: api/Transactions/id  Вивести транзакції за останню хвилину по одній конкретній машині.
         [HttpGet("{id}")]
-        public IEnumerable<string> Get(string id)
+        public IEnumerable<Transaction> Get(string id)
         {
-            return new string[] { "value1", "value2" };
+            return _parking.GetAllTransactionsById(id);
         }
 
         // PUT: api/Transactions/5  Поповнити баланс машини
         [HttpPut("{id}")]
-        public void Put(string id, [FromBody]decimal value)
+        public IActionResult Put(string id, [FromBody]decimal value)
         {
+            if(_parking.AddBalanceCar(id, value))
+            {
+                return Ok();
+            }
+            else
+            {
+                return BadRequest(String.Format("The machine with the number {0} is not found.", id));
+            }
 
         }
     }

@@ -144,6 +144,8 @@ namespace ParkingCL
         {
             if (String.IsNullOrWhiteSpace(licensePlate)) return false;
 
+            if (money <= 0) return false;
+
             Car car = this.cars.FirstOrDefault(x => x.LicensePlate == licensePlate);
             if (car == null) return false;
 
@@ -162,8 +164,6 @@ namespace ParkingCL
                 return this.cars.Count;
             }
         }
-
-        public List<Transaction> AllTransaction() => this.transactions;
 
         private void WriteLogAndCleanTransactions(object o)
         {
@@ -215,6 +215,15 @@ namespace ParkingCL
             lock (transactionsSyncRoot)
             {
                 return CloneList<Transaction>(this.transactions).ToList<Transaction>();
+            }
+        }
+
+        public List<Transaction> GetAllTransactionsById(string id)
+        {
+            lock (transactionsSyncRoot)
+            {   // TODO: Need refactoring
+                List<Transaction> transactionsById = this.transactions.Where(x => x.CarLicensePlate == id).ToList();
+                return CloneList<Transaction>(transactionsById).ToList<Transaction>();
             }
         }
 
