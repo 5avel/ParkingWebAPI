@@ -45,3 +45,5 @@ GET   | /api/Transactions/log   | Вивести Transactions.log
 GET   | /api/Transactions   | Вивести транзакції за останню хвилину
 GET   | /api/Transactions/{id}   | Вивести транзакції за останню хвилину по одній конкретній машині
 PUT   | /api/Transactions/{id}   | Поповнити баланс машини: 10.25
+
+## Azure URL http://myparkingwebapi.azurewebsites.net  
