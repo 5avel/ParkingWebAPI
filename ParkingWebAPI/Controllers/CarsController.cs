@@ -2,6 +2,7 @@
 using ParkingCL;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace ParkingWebAPI.Controllers
 {
@@ -18,16 +19,16 @@ namespace ParkingWebAPI.Controllers
 
         // GET: api/Cars Список всіх машин
         [HttpGet]
-        public IEnumerable<Car> Get()
-        {
-            return _parking.GetAllCars();
-        }
-
+        public async Task<IEnumerable<Car>> Get()
+            => await _parking.GetAllCarsAsync();
+        
         // GET: api/Cars/5  Деталі по одній машині
         [HttpGet("{id}", Name = "Get")]
-        public Car Get(string id)
+        public async Task<IActionResult> Get(string id)
         {
-            return _parking.GetCarByID(id);
+            var car = await _parking.GetCarByIdAsync(id);
+            if (car == null) return BadRequest($"The machine with the number {id} not found.");
+            return Ok(car);
         }
 
         // POST: api/Cars  Додати машину 
@@ -35,27 +36,31 @@ namespace ParkingWebAPI.Controllers
         public IActionResult Post([FromBody]Car value)
         {
             if (String.IsNullOrWhiteSpace(value.Id)) return BadRequest("The machine id can not be empty.");
-            if(_parking.AddCar(value))
-            {
+            Error res = _parking.AddCar(value);
+            if (res == Error.Success)
                 return Ok();
-            }
-            return BadRequest($"The machine with the number { value.Id} already exists. Please try again.");
+            else if(res == Error.ParkingIsFull)
+                return BadRequest($"Parking Is Full. Please try again later.");
+            else
+                return BadRequest($"The machine with the number {value.Id} already exists. Please try again.");
         }
 
         // DELETE: api/ApiWithActions/5  Видалити машину
         [HttpDelete("{id}")]
         public IActionResult Delete(string id)
         {
-            int res = _parking.DelCar(id);
-            if (res == 1)
+            Error res = _parking.DelCar(id);
+            if (res == Error.Success)
             {
-                return Ok();
+                return Ok($"The machine whis number {id} was successfully deleted.");
             }
-            else if(res == -3)
+            else if (res == Error.NegativeBalance)
             {
-                return BadRequest(String.Format("The machine with the number {0} has a negative balance. Please Replenish balance.", id));
+                return BadRequest($"The car with the number {id} has a negative balance. Please Replenish balance.");
             }
-            return BadRequest(String.Format("The machine with the number {0} is not found. Please try again.", id));
+            
+            return BadRequest($"The car with the number {id} is not found. Please try again.");
+            
         }
     }
 }

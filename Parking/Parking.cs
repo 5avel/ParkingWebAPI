@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace ParkingCL
 {
@@ -35,16 +36,16 @@ namespace ParkingCL
         /// </summary>
         /// <param name="car"></param>
         /// <returns>false if car == null, parking is full or car is not unique</returns>
-        public bool AddCar(Car car)
+        public Error AddCar(Car car)
         {
-            if (car == null) return false;
+            if (car == null) return Error.IsNullOrWhiteSpace;
 
-            if (cars.Count >= Settings.ParkingSpace) return false;
+            if (cars.Count >= Settings.ParkingSpace) return Error.ParkingIsFull;
 
-            if (cars.Count(x => x.Id == car.Id) > 0) return false;
+            if (cars.Count(x => x.Id == car.Id) > 0) return Error.AlreadyExists;
 
             cars.Add(car);
-            return true;
+            return Error.Success;
         }
 
         /// <summary>
@@ -52,31 +53,32 @@ namespace ParkingCL
         /// </summary>
         /// <param name="id">Car Id</param>
         /// <returns> 1 - car successfully deleted; 0 - car not deleted; -1 - carLicensePlate IsNullOrWhiteSpace; -2 - ar not found; -3 - The Car has a negative balance</returns>
-        public int DelCar(string id)
+        public Error DelCar(string id)
         {
-            if (String.IsNullOrWhiteSpace(id)) return -1;
+            if (String.IsNullOrWhiteSpace(id)) return Error.IsNullOrWhiteSpace;
 
             Car delCar = cars.FirstOrDefault<Car>(x => x.Id == id);
-            if (delCar == null) return -2;
+            if (delCar == null) return Error.NotFound;
 
-            if (delCar.Balance < 0) return -3;
+            if (delCar.Balance < 0) return Error.NegativeBalance;
 
             if (cars.Remove(delCar))
             {
-                return 1;
+                return Error.Success;
             }
             else
             {
-                return 0;
+                return Error.Error;
             }
         }
 
-        public Car GetCarByID(string id)
-        {
-            if (String.IsNullOrWhiteSpace(id)) return null;
+        public Task<Car> GetCarByIdAsync(string id)
+            => Task.Run(()
+                =>{
+                    if (String.IsNullOrWhiteSpace(id)) return null;
+                    return cars.FirstOrDefault<Car>(x => x.Id == id);
+                });
 
-            return cars.FirstOrDefault<Car>(x => x.Id == id);
-        }
 
         private void PayCalc(object o)
         {
@@ -140,7 +142,11 @@ namespace ParkingCL
         private void WriteLogAndCleanTransactions(object o)
         {
             string path = Settings.LogPath;
-            decimal sum = transactions.Sum(t => t.Debited);          
+            decimal sum;
+            lock (transactionsSyncRoot)
+            {
+                sum = transactions.Sum(t => t.Debited);
+            }
             try
             {
                 using (StreamWriter sw = new StreamWriter(path, true))
@@ -165,49 +171,53 @@ namespace ParkingCL
             => transactions.Sum(t => t.Debited);
         
 
-        public List<Car> GetAllCars() 
-            =>  CloneList<Car>(this.cars).ToList<Car>();
+        public Task<IEnumerable<Car>> GetAllCarsAsync() 
+            => Task.Run(()
+                =>  cars.Select(x => (Car)x.Clone()));
 
 
-        public List<Transaction> GetAllTransactions() 
-            => CloneList<Transaction>(this.transactions).ToList<Transaction>();
+        public Task<IEnumerable<Transaction>> GetAllTransactionsAsync()
+            => Task.Run(()
+                => transactions.Select(x => (Transaction)x.Clone()));
+        
 
+        public Task<IEnumerable<Transaction>> GetAllTransactionsByIdAsync(string id)
+            => Task.Run(() =>
+                { 
+                    lock (transactionsSyncRoot)
+                       return transactions.Where(t => t.Id == id)
+                            .Select(x => (Transaction)x.Clone());   
+                });
 
-        public List<Transaction> GetAllTransactionsById(string id)
+        public Task<List<string>> GetTransactionsLogAsync()
         {
-            lock (transactionsSyncRoot)
-            {   // TODO: Need refactoring
-                List<Transaction> transactionsById = this.transactions.Where(x => x.Id == id).ToList();
-                return CloneList<Transaction>(transactionsById).ToList<Transaction>();
-            }
-        }
-
-        public List<string> GetTransactionsLog()
-        {
-            string path = Settings.LogPath;
-            List<string> log = new List<string>();
-            if (File.Exists(path) && !String.IsNullOrWhiteSpace(path))
-            {
-                StreamReader sr;
-                try
+            return Task.Run(() =>
+            { 
+                string path = Settings.LogPath;
+                List<string> log = new List<string>();
+                if (File.Exists(path) && !String.IsNullOrWhiteSpace(path))
                 {
-                    using (sr = new StreamReader(path, true))
+                    StreamReader sr;
+                    try
                     {
-                        string line;
-                        while ((line = sr.ReadLine()) != null)
+                        using (sr = new StreamReader(path, true))
                         {
-                            log.Add(line);
+                            string line;
+                            while ((line = sr.ReadLine()) != null)
+                            {
+                                log.Add(line);
+                            }
                         }
                     }
+                    catch (UnauthorizedAccessException e) { Console.WriteLine(e.Message); }
+                    catch (ArgumentNullException e) { Console.WriteLine(e.Message); }
+                    catch (ArgumentException e) { Console.WriteLine(e.Message); }
+                    catch (DirectoryNotFoundException e) { Console.WriteLine(e.Message); }
+                    catch (PathTooLongException e) { Console.WriteLine(e.Message); }
+                    catch (IOException e) { Console.WriteLine(e.Message); }
                 }
-                catch (UnauthorizedAccessException e) { Console.WriteLine(e.Message); }
-                catch (ArgumentNullException e) { Console.WriteLine(e.Message); }
-                catch (ArgumentException e) { Console.WriteLine(e.Message); }
-                catch (DirectoryNotFoundException e) { Console.WriteLine(e.Message); }
-                catch (PathTooLongException e) { Console.WriteLine(e.Message); }
-                catch (IOException e) { Console.WriteLine(e.Message); }
-            }
-            return log;
+                return log;
+            });
         }
 
     }

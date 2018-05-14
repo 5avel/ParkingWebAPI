@@ -28,7 +28,7 @@ namespace ParkingWebAPI.Controllers
             return _parking.CountOccupiedParkingPlaces();
         }
 
-        // GET: api/Parking/free   Загальний дохід
+        // GET: api/Parking/income   Загальний дохід
         [HttpGet("income")]
         public decimal GetTotalIncome()
         {

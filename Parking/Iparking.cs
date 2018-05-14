@@ -1,22 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace ParkingCL
 {
     public interface IParking
     {
-        bool AddCar(Car car);
-        int DelCar(string id);
-        Car GetCarByID(string id);
+        Error AddCar(Car car);
+        Error DelCar(string id);
+        Task<Car> GetCarByIdAsync(string id);
         bool AddBalanceCar(string id, decimal money);
         decimal GetTotalParkingIncome();
         int CountFreeParkingPlaces();
         int CountOccupiedParkingPlaces();
         decimal GetIncomeLastMinute();
-        List<Car> GetAllCars();
-        List<Transaction> GetAllTransactions();
-        List<Transaction> GetAllTransactionsById(string id);
-        List<string> GetTransactionsLog();
+        Task<IEnumerable<Car>> GetAllCarsAsync();
+        Task<IEnumerable<Transaction>> GetAllTransactionsAsync();
+        Task<IEnumerable<Transaction>> GetAllTransactionsByIdAsync(string id);
+        Task<List<string>> GetTransactionsLogAsync();
     }
 }
