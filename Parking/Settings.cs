@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Parking
+namespace ParkingCL
 {
     public static class Settings
     {

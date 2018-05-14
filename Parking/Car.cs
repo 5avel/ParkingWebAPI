@@ -1,42 +1,21 @@
 ﻿using System;
 
-namespace Parking
+namespace ParkingCL
 {
     public class Car : ICloneable
     {
-        private object syncRoot = new object();
-        public string LicensePlate { get; private set; }
-        private decimal balance;
-        public decimal Balance
-        {
-            get
-            {
-                lock (syncRoot)
-                {
-                    return balance;
-                }
-            }
-            set
-            {
-                lock (syncRoot)
-                {
-                    balance = value;
-                }
-            }
-        }
+        public string Id { get; private set; }
+        public decimal Balance { set; get; }
         public CarType CarType { get; private set; }
 
-        public Car(string licensePlate, CarType carType, decimal balance = 0)
+        public Car(string id, CarType carType, decimal balance = 0)
         {
-            if (String.IsNullOrWhiteSpace(licensePlate)) throw new ArgumentException("");
-            this.LicensePlate = licensePlate;
+            this.Id = id;
             this.CarType = carType;
             this.Balance = balance;
         }
 
-        public object Clone()
-        {
-            return this.MemberwiseClone();
-        }
+        public object Clone() => this.MemberwiseClone();
+
     }
 }
