@@ -42,7 +42,7 @@ namespace ParkingWebAPI.Controllers
             }
             else
             {
-                return BadRequest(String.Format("The machine with the number {0} is not found.", id));
+                return BadRequest($"The machine with the number {id} is not found.");
             }
 
         }

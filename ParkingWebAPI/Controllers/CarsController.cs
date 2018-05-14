@@ -29,12 +29,12 @@ namespace ParkingWebAPI.Controllers
         [HttpPost]
         public IActionResult Post([FromBody]Car value)
         {
-            if (String.IsNullOrWhiteSpace(value.LicensePlate)) return BadRequest("The machine id can not be empty.");
+            if (String.IsNullOrWhiteSpace(value.Id)) return BadRequest("The machine id can not be empty.");
             if(_parking.AddCar(value))
             {
                 return Ok();
             }
-            return BadRequest(String.Format("The machine with the number {0} already exists. Please try again.", value.LicensePlate));
+            return BadRequest($"The machine with the number { value.Id} already exists. Please try again.");
         }
 
         // DELETE: api/ApiWithActions/5  Видалити машину

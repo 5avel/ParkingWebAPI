@@ -5,13 +5,13 @@ namespace ParkingCL
     public class Transaction : ICloneable
     {
         public DateTime DateTime { get; private set; }
-        public string CarLicensePlate { get; private set; }
+        public string Id { get; private set; }
         public decimal Debited { get; private set; }
 
-        public Transaction(string carLicensePlate, decimal debited)
+        public Transaction(string id, decimal debited)
         {
             this.DateTime = DateTime.Now;
-            this.CarLicensePlate = carLicensePlate;
+            this.Id = id;
             this.Debited = debited;
         }
 
