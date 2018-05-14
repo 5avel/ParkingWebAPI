@@ -9,7 +9,12 @@ namespace ParkingWebAPI.Controllers
     [Route("api/Cars")]
     public class CarsController : Controller
     {
-        private Parking _parking = Parking.Instance;
+        private IParking _parking;
+
+        public CarsController(IParking parking)
+        {
+            _parking = parking;
+        }
 
         // GET: api/Cars Список всіх машин
         [HttpGet]

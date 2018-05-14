@@ -9,7 +9,12 @@ namespace ParkingWebAPI.Controllers
     [Route("api/Transactions")]
     public class TransactionsController : Controller
     {
-        private Parking _parking = Parking.Instance;
+        private IParking _parking;
+
+        public TransactionsController(IParking parking)
+        {
+            _parking = parking;
+        }
 
         // GET: api/Transactions/log  Вивести Transactions.log
         [HttpGet("log")]

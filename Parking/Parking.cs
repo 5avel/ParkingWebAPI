@@ -6,29 +6,26 @@ using System.Threading;
 
 namespace ParkingCL
 {
-    public sealed class Parking
+    public sealed class Parking : IParking
     {
-        private static readonly Lazy<Parking> lazy = new Lazy<Parking>(() => new Parking());
-        public static Parking Instance { get => lazy.Value; }
-
         private List<Car> cars = new List<Car>();
 
         private List<Transaction> transactions = new List<Transaction>();
 
         private object transactionsSyncRoot = new object();
 
-        public decimal ParkingBalance { set; get; }
+        private decimal parkingBalance;
 
         private Timer calcTimer;
         private Timer logTimer;
 
-        private Parking()
+        public Parking()
         {
             this.calcTimer = new Timer(new TimerCallback(PayCalc), null, Settings.Timeout, Settings.Timeout);
             this.logTimer = new Timer(new TimerCallback(WriteLogAndCleanTransactions), null, Settings.LogTimeout, Settings.LogTimeout);
         }
 
-        public IList<T> CloneList<T>(IList<T> listToClone) where T : ICloneable
+        private IList<T> CloneList<T>(IList<T> listToClone) where T : ICloneable
         {
             return listToClone.Select(item => (T)item.Clone()).ToList();
         }
@@ -53,13 +50,13 @@ namespace ParkingCL
         /// <summary>
         /// Removing car from parking
         /// </summary>
-        /// <param name="carLicensePlate">License Plate or Id</param>
+        /// <param name="id">Car Id</param>
         /// <returns> 1 - car successfully deleted; 0 - car not deleted; -1 - carLicensePlate IsNullOrWhiteSpace; -2 - ar not found; -3 - The Car has a negative balance</returns>
-        public int DelCar(string carLicensePlate)
+        public int DelCar(string id)
         {
-            if (String.IsNullOrWhiteSpace(carLicensePlate)) return -1;
+            if (String.IsNullOrWhiteSpace(id)) return -1;
 
-            Car delCar = cars.FirstOrDefault<Car>(x => x.Id == carLicensePlate);
+            Car delCar = cars.FirstOrDefault<Car>(x => x.Id == id);
             if (delCar == null) return -2;
 
             if (delCar.Balance < 0) return -3;
@@ -108,7 +105,7 @@ namespace ParkingCL
 
                 car.Balance -= curPrice;
 
-                this.ParkingBalance += curPrice;
+                this.parkingBalance += curPrice;
                 // Add transaction
                 lock (transactionsSyncRoot)
                 {
@@ -117,13 +114,13 @@ namespace ParkingCL
             }
         }
 
-        public bool AddBalanceCar(string licensePlate, decimal money)
+        public bool AddBalanceCar(string id, decimal money)
         {
-            if (String.IsNullOrWhiteSpace(licensePlate)) return false;
+            if (String.IsNullOrWhiteSpace(id)) return false;
 
             if (money <= 0) return false;
 
-            Car car = this.cars.FirstOrDefault(x => x.Id == licensePlate);
+            Car car = this.cars.FirstOrDefault(x => x.Id == id);
             if (car == null) return false;
 
             car.Balance += money;
@@ -131,7 +128,7 @@ namespace ParkingCL
         }
 
         public decimal GetTotalParkingIncome() 
-            => this.ParkingBalance;
+            => this.parkingBalance;
 
         public int CountFreeParkingPlaces() 
             => Settings.ParkingSpace - this.cars.Count;
